@@ -18,20 +18,22 @@ In accordance with the project guidelines, we chose **Setting 2**:
 LSST-TimeSeries-DL/
 │
 ├── data/
-│   ├── lsst/
-│   └── informer/
+│   ├── lsst/                    
+│   └── informer/                
 │
-├── src/                       
+├── src/                          
 │   ├── __init__.py           
-│   ├── dataset.py           
-│   ├── model.py               
-│   └── preprocessing.py       
+│   ├── dataset.py              
+│   ├── model.py                   
+│   └── preprocessing.py           
 │
-├── baseline.py                
-├── pretrain.py               
-├── finetune.py             
+├── baseline.py                     
+├── pretrain.py                
+├── finetune.py                     
 │
-├── pretrained_encoder.pth      
-├── requirements.txt            
-├── report_DL_TimeSeries.pdf    
-└── README.md
+├── main_LSST_classification.ipynb        
+│
+├── pretrained_encoder.pth         
+├── requirements.txt               
+├── report_DL_TimeSeries.pdf        
+└── README.md                       
