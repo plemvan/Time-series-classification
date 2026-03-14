@@ -18,8 +18,8 @@ In accordance with the project guidelines, we chose **Setting 2**:
 LSST-TimeSeries-DL/
 │
 ├── data/
-│   ├── lsst/                    
-│   └── informer/                
+│   ├── informer/                    
+│                  
 │
 ├── src/                          
 │   ├── __init__.py           
