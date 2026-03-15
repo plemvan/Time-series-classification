@@ -12,10 +12,10 @@ from src.preprocessing import scale_informer_data
 def main():
     seq_len_past = 96      # Look-back window (e.g., 96 hours)
     horizon = 24           # Prediction window (e.g., 24 hours)
-    hidden_dim = 64        # Must remain the same in finetune.py
+    hidden_dim = 32       # Must remain the same in finetune.py
     batch_size = 32
-    epochs = 5           
-    learning_rate = 1e-3
+    epochs = 5
+    learning_rate = 6e-5
 
     data_path = 'data/informer/ETTh1.csv'
     
@@ -24,6 +24,7 @@ def main():
         df = pd.read_csv(data_path)
         raw_data = df.iloc[:, 1:].values 
     else:
+        print("No data found. Randomly generated")
         raw_data = np.random.randn(10000, 7) # 7 variables like ETTh1
 
     num_channels = raw_data.shape[1]

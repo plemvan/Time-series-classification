@@ -12,10 +12,10 @@ from src.dataset import LSSTClassificationDataset
 from src.preprocessing import scale_lsst_data, encode_lsst_labels
 
 def main():
-    hidden_dim = 64        # MUST MATCH the one in pretrain.py
-    batch_size = 32
-    epochs = 100           
-    learning_rate = 1e-4   # Smaller LR is usually better for fine-tuning
+    hidden_dim = 64
+    batch_size = 16
+    epochs = 100
+    learning_rate = 1e-4
 
     ds = UCR_UEA_datasets()
     X_train_raw, y_train_raw, X_test_raw, y_test_raw = ds.load_dataset("LSST")
