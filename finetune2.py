@@ -9,10 +9,12 @@ from tslearn.datasets import UCR_UEA_datasets
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from src.model import TimeSeriesEncoderCI, ClassificationModel
 from src.dataset import LSSTClassificationDataset
 from src.preprocessing import scale_lsst_data, encode_lsst_labels
+
 
 # Fonction pour trouver le prochain nom de fichier disponible
 def get_next_filename(base_name="graph", ext=".png"):
@@ -23,13 +25,13 @@ def get_next_filename(base_name="graph", ext=".png"):
 
 def main():
     # --- Hyperparamètres ---
-    hidden_dim = 32
+    hidden_dim = 64
     batch_size = 16
-    epochs = 100
-    freeze_epochs = 40
-    lr_encoder = 1e-5       
-    lr_head = 3e-5    
-    lr_post_freeze = 3e-5
+    epochs = 150
+    freeze_epochs = 15    
+    lr_head = 3e-4    
+    lr_encoder_post_freeze = 1e-5
+    lr_post_freeze = 5e-5
     # -----------------------
 
     ds = UCR_UEA_datasets()
@@ -42,7 +44,7 @@ def main():
     # Split Train / Validation (10%)
     X_train_split, X_val_split, y_train_split, y_val_split = train_test_split(
         X_train_scaled, y_train_encoded, 
-        test_size=0.10, 
+        test_size=0.20, 
         random_state=42, 
         stratify=y_train_encoded
     )
@@ -99,6 +101,7 @@ def main():
 
     print("Starting fine-tuning phase (classification)")
     
+    scheduler = ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
     for epoch in range(epochs):
         # 1. Gestion du Unfreezing
         if epoch == freeze_epochs:
@@ -107,9 +110,10 @@ def main():
                 param.requires_grad = True
 
             optimizer = optim.Adam([
-                {'params': classification_model.encoder.parameters(), 'lr': lr_post_freeze},
+                {'params': classification_model.encoder.parameters(), 'lr': lr_encoder_post_freeze},
                 {'params': classification_model.head.parameters(),    'lr': lr_post_freeze}
             ])
+            scheduler = ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
 
         # 2. Train Phase
         classification_model.train()
@@ -164,7 +168,7 @@ def main():
     
     params_text = (
         f"Params: hidden_dim={hidden_dim} | batch_size={batch_size} | epochs={epochs}\n"
-        f"freeze_epochs={freeze_epochs} | lr_encoder={lr_encoder} | lr_head={lr_head}"
+        f"freeze_epochs={freeze_epochs} | lr_encoder={lr_post_freeze} | lr_head={lr_post_freeze}"
     )
     
     plt.title(params_text, fontsize=10, color='dimgray', pad=15)

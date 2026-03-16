@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 def encode_lsst_labels(y_train, y_test):
     """
@@ -14,13 +13,20 @@ def encode_lsst_labels(y_train, y_test):
 
 def scale_lsst_data(X_train, X_test):
     """
-    Scales the 3D LSST time series (Samples, Time, Channels) to have zero mean and unit variance.
+    Normalisation cohérente avec ETTh : StandardScaler par canal.
+    X shape: (Samples, Time, Channels)
     """
-    # TimeSeriesScalerMeanVariance is designed specifically for 3D time series
-    scaler = TimeSeriesScalerMeanVariance()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
+    n_train, seq_len, n_channels = X_train.shape
+    n_test = X_test.shape[0]
+
+    # Reshape en 2D pour StandardScaler
+    X_train_2d = X_train.reshape(-1, n_channels)  # (Samples*Time, Channels)
+    X_test_2d  = X_test.reshape(-1, n_channels)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train_2d).reshape(n_train, seq_len, n_channels)
+    X_test_scaled  = scaler.transform(X_test_2d).reshape(n_test, seq_len, n_channels)
+
     return X_train_scaled, X_test_scaled
 
 def scale_informer_data(data):

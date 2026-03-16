@@ -61,6 +61,8 @@ class TimeSeriesEncoderCI(nn.Module):
         # Final output: (batch_size, num_channels * output_dim_per_channel)
         return combined.flatten(start_dim=1)
 
+
+
 class ForecastingModel(nn.Module):
     def __init__(self, encoder, num_channels, horizon):
         super().__init__()
