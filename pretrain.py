@@ -10,6 +10,20 @@ from src.model import TimeSeriesEncoderCI, ForecastingModel
 from src.dataset import InformerForecastingDataset
 from src.preprocessing import scale_informer_data
 
+
+def set_seed(seed=42):
+    """Fixe toutes les seeds pour garantir la reproductibilité."""
+    os.environ['PYTHONHASHSEED'] = str(seed) # Fixe les hashs de Python
+    np.random.seed(seed)                   # Fixe le hasard de Numpy
+    torch.manual_seed(seed)                # Fixe le hasard de PyTorch (CPU)
+    torch.cuda.manual_seed(seed)           # Fixe le hasard de PyTorch (GPU)
+    torch.cuda.manual_seed_all(seed)       # Fixe le hasard multi-GPU (au cas où)
+    
+    # Force cuDNN à utiliser des algorithmes déterministes
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 def get_next_filename(base_name="graph", ext=".png"):
     i = 1
     while os.path.exists(f"{base_name}_{i}{ext}"):
@@ -17,13 +31,15 @@ def get_next_filename(base_name="graph", ext=".png"):
     return f"{base_name}_{i}{ext}"
 
 def main():
+    set_seed(0)
+
     # --- HYPERPARAMÈTRES ---
-    seq_len_past = 96      # Look-back window
-    horizon = 24       # Prediction window
-    hidden_dim = 64        # Must remain the same in finetune.py
+    seq_len_past = 110      # Look-back window
+    horizon = 10       # Prediction window
+    hidden_dim = 32        # Must remain the same in finetune.py
     batch_size = 16
-    epochs = 20        
-    learning_rate = 3e-4
+    epochs = 15
+    learning_rate = 1e-4
     # -----------------------
 
     data_path = 'data/informer/ETTh1.csv'

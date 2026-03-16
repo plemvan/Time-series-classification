@@ -16,6 +16,18 @@ from src.dataset import LSSTClassificationDataset
 from src.preprocessing import scale_lsst_data, encode_lsst_labels
 
 
+def set_seed(seed=0):
+    """Fixe toutes les seeds pour garantir la reproductibilité."""
+    os.environ['PYTHONHASHSEED'] = str(seed) # Fixe les hashs de Python
+    np.random.seed(seed)                   # Fixe le hasard de Numpy
+    torch.manual_seed(seed)                # Fixe le hasard de PyTorch (CPU)
+    torch.cuda.manual_seed(seed)           # Fixe le hasard de PyTorch (GPU)
+    torch.cuda.manual_seed_all(seed)       # Fixe le hasard multi-GPU (au cas où)
+    
+    # Force cuDNN à utiliser des algorithmes déterministes
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
 # Fonction pour trouver le prochain nom de fichier disponible
 def get_next_filename(base_name="graph", ext=".png"):
     i = 1
@@ -24,14 +36,15 @@ def get_next_filename(base_name="graph", ext=".png"):
     return f"{base_name}_{i}{ext}"
 
 def main():
+    set_seed()
     # --- Hyperparamètres ---
-    hidden_dim = 64
-    batch_size = 16
-    epochs = 150
-    freeze_epochs = 15    
-    lr_head = 3e-4    
+    hidden_dim = 32
+    batch_size = 32
+    epochs = 500
+    freeze_epochs = 80
+    lr_head = 4e-5
     lr_encoder_post_freeze = 1e-5
-    lr_post_freeze = 5e-5
+    lr_post_freeze = 2e-5
     # -----------------------
 
     ds = UCR_UEA_datasets()
