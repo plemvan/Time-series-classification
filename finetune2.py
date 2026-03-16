@@ -39,7 +39,7 @@ def main():
     set_seed()
     # --- Hyperparamètres ---
     hidden_dim = 32
-    batch_size = 32
+    batch_size = 16
     epochs = 500
     freeze_epochs = 80
     lr_head = 4e-5
@@ -94,7 +94,7 @@ def main():
         classes=np.unique(y_train_split),
         y=y_train_split
     )
-    smoothed_weights = np.sqrt(class_weights)
+    smoothed_weights = np.power(class_weights, 4/7)
     weights_tensor = torch.tensor(smoothed_weights, dtype=torch.float32).to(device)
     criterion = nn.CrossEntropyLoss(weight=weights_tensor)
 
