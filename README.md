@@ -6,9 +6,9 @@
 ##  Project Description
 This repository contains the source code for our evaluation project for the **"Deep Learning for Time Series"** course. 
 
-The main objective is to perform a **Time Series Classification (TSC)** task on the multivariate astronomical dataset **LSST** (Large Synoptic Survey Telescope).
+The main objective is to perform a **Time Series Classification** task on the multivariate astronomical dataset **LSST** (Large Synoptic Survey Telescope).
 
-In accordance with the project guidelines, we chose **Setting 2**:
+In accordance with the project guidelines, we chose the following setting :
 1. **Pre-training (Forecasting)**: Training an encoder model on a forecasting task using exclusively the *Informer* family datasets (ETT, Electricity, Weather, etc.).
 2. **Adaptation (Classification)**: Transferring the pre-trained encoder and fine-tuning it on the LSST dataset for the 14-class classification task.
 
