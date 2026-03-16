@@ -7,25 +7,25 @@ class TimeSeriesEncoderCI(nn.Module):
         super().__init__()
         # The network takes exactly 1 input channel, regardless of the dataset.
         self.conv_block = nn.Sequential(
-            # Bloc 1
+            # Block 1
             nn.Conv1d(1, hidden_dim, kernel_size=3, padding=1),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len → seq_len / 2
+            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len -> seq_len / 2
             nn.Dropout(p=0.1),
 
-            # Bloc 2
+            # Block 2
             nn.Conv1d(hidden_dim, hidden_dim * 2, kernel_size=3, padding=1),
             nn.BatchNorm1d(hidden_dim * 2),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len / 2 → seq_len / 4
+            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len / 2 -> seq_len / 4
             nn.Dropout(p=0.1),
 
-            # Bloc 3
-            nn.Conv1d(hidden_dim*2, hidden_dim * 4, kernel_size=3, padding=1),
+            # Block 3
+            nn.Conv1d(hidden_dim * 2, hidden_dim * 4, kernel_size=3, padding=1),
             nn.BatchNorm1d(hidden_dim * 4),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len / 2 → seq_len / 4
+            nn.MaxPool1d(kernel_size=2, stride=2),  # seq_len / 4 -> seq_len / 8
             nn.Dropout(p=0.1),
         )
         self.avg_pool = nn.AdaptiveAvgPool1d(1)
@@ -35,35 +35,36 @@ class TimeSeriesEncoderCI(nn.Module):
         self.output_dim_per_channel = hidden_dim * 4 * 2
 
     def forward(self, x):
+        #  Reshape for Channel Independence
         batch_size, num_channels, seq_len = x.shape
         x_ci = x.reshape(batch_size * num_channels, 1, seq_len)
-        
-        # 1. Extraction des features convolutives
+
         features = self.conv_block(x_ci) 
-        # Shape actuel : (batch * channels, hidden_dim * 4, seq_len_reduit)
+        # Current shape: (batch * channels, hidden_dim * 4, reduced_seq_len)
         
-        # 2. Dual Pooling en parallèle
-        ap = self.avg_pool(features) # Shape: (batch * channels, hidden_dim * 4, 2)
-        mp = self.max_pool(features) # Shape: (batch * channels, hidden_dim * 4, 2)
+        #  Parallel Dual Pooling
+        ap = self.avg_pool(features) # Shape: (batch * channels, hidden_dim * 4, 1)
+        mp = self.max_pool(features) # Shape: (batch * channels, hidden_dim * 4, 1)
         
-        # 3. Concaténation sur l'axe des filtres (dim=1)
-        # Shape: (batch * channels, hidden_dim * 8, 2)
+        # Concatenation along the filter axis (dim=1)
+        # Shape: (batch * channels, hidden_dim * 8, 1)
         combined = torch.cat([ap, mp], dim=1)
         
-        # 4. On aplatit TOUT le reste (filtres + temps) pour chaque signal individuel
-        # Shape: (batch * channels, hidden_dim * 8 * 2)
+        # Flatten the remaining dimensions (filters + time) for each individual signal
+        # Shape: (batch * channels, hidden_dim * 8)
         combined = combined.flatten(start_dim=1)
         
-        # 5. On remet sous la forme (Batch, Channels, Features_par_channel)
+        # Reshape back to separate the batch and channel dimensions
+        # Shape: (batch_size, num_channels, features_per_channel)
         combined = combined.reshape(batch_size, num_channels, self.output_dim_per_channel)
         
-        # 6. Flatten final pour envoyer à la Head
-        # Final output: (batch_size, num_channels * output_dim_per_channel)
+        # Final flatten to pass the features to the specific Head
+        # Final output shape: (batch_size, num_channels * output_dim_per_channel)
         return combined.flatten(start_dim=1)
 
 
-
 class ForecastingModel(nn.Module):
+    """Forecasting Head (for ETTh1 Pre-training)"""
     def __init__(self, encoder, num_channels, horizon):
         super().__init__()
         self.encoder = encoder
@@ -71,7 +72,7 @@ class ForecastingModel(nn.Module):
         self.head = nn.Sequential(
             nn.Linear(in_features, in_features // 2),
             nn.ReLU(),
-            nn.Dropout(p=0.1),  # Léger, c'est de la régression
+            nn.Dropout(p=0.1),  # Light dropout, as this is a regression task
             nn.Linear(in_features // 2, horizon)
         )
 
@@ -81,7 +82,7 @@ class ForecastingModel(nn.Module):
 
 
 class ClassificationModel(nn.Module):
-    """Classification Head (for LSST)"""
+    """Classification Head (for LSST Fine-tuning)"""
     def __init__(self, encoder, num_channels, num_classes):
         super().__init__()
         self.encoder = encoder
@@ -89,7 +90,7 @@ class ClassificationModel(nn.Module):
         self.head = nn.Sequential(
             nn.Linear(in_features, in_features // 2),
             nn.ReLU(),
-            nn.Dropout(p=0.4),
+            nn.Dropout(p=0.4),  # Heavier dropout for classification to prevent overfitting
             nn.Linear(in_features // 2, num_classes)
         )
 

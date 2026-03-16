@@ -17,18 +17,18 @@ from src.preprocessing import scale_lsst_data, encode_lsst_labels
 
 
 def set_seed(seed=0):
-    """Fixe toutes les seeds pour garantir la reproductibilité."""
-    os.environ['PYTHONHASHSEED'] = str(seed) # Fixe les hashs de Python
-    np.random.seed(seed)                   # Fixe le hasard de Numpy
-    torch.manual_seed(seed)                # Fixe le hasard de PyTorch (CPU)
-    torch.cuda.manual_seed(seed)           # Fixe le hasard de PyTorch (GPU)
-    torch.cuda.manual_seed_all(seed)       # Fixe le hasard multi-GPU (au cas où)
+    """Fix the random seeds for reproducibility."""
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)                   
+    torch.manual_seed(seed)             
+    torch.cuda.manual_seed(seed)          
+    torch.cuda.manual_seed_all(seed)      
     
-    # Force cuDNN à utiliser des algorithmes déterministes
+
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-# Fonction pour trouver le prochain nom de fichier disponible
+# Function to generate a unique filename for saving graphs
 def get_next_filename(base_name="graph", ext=".png"):
     i = 1
     while os.path.exists(f"{base_name}_{i}{ext}"):
@@ -37,7 +37,7 @@ def get_next_filename(base_name="graph", ext=".png"):
 
 def main():
     set_seed()
-    # --- Hyperparamètres ---
+    # --- Hyperparameters ---
     hidden_dim = 32
     batch_size = 32
     epochs = 500
@@ -108,7 +108,7 @@ def main():
     history_train_loss = []
     history_val_loss = []
 
-    # --- Variables pour le Checkpointing ---
+    # Checkpointing
     best_val_loss = float('inf')
     best_model_path = "best_classification_model.pth"
 
@@ -167,9 +167,9 @@ def main():
             best_val_loss = avg_val_loss
             torch.save(classification_model.state_dict(), best_model_path)
 
-    # --- Génération et sauvegarde dynamique du graphique ---
+    # Generate loss curve after training
     print("\nGenerating Loss Curve...")
-    os.makedirs("graphs", exist_ok=True) # Sécurité pour le dossier
+    os.makedirs("graphs", exist_ok=True) 
     
     plt.figure(figsize=(10, 7)) 
     
@@ -199,9 +199,9 @@ def main():
     plt.savefig(save_filename, dpi=300, bbox_inches='tight') 
     print(f"Curve saved dynamically as '{save_filename}'")
 
-    # --- Évaluation Finale sur le Test Set ---
+    # Evaluation on Test Set
     
-    # --- Chargement du meilleur modèle pour l'inférence ---
+    #Inference 
     print(f"\nLoading the BEST model weights from '{best_model_path}' for evaluation...")
     classification_model.load_state_dict(torch.load(best_model_path))
     

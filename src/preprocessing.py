@@ -19,7 +19,7 @@ def scale_lsst_data(X_train, X_test):
     n_train, seq_len, n_channels = X_train.shape
     n_test = X_test.shape[0]
 
-    # Reshape en 2D pour StandardScaler
+    # Reshape in 2D for StandardScaler
     X_train_2d = X_train.reshape(-1, n_channels)  # (Samples*Time, Channels)
     X_test_2d  = X_test.reshape(-1, n_channels)
 

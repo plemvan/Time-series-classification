@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt # NOUVEAU: Pour le graphe
+import matplotlib.pyplot as plt 
 from torch.utils.data import DataLoader
 from src.model import TimeSeriesEncoderCI, ForecastingModel
 from src.dataset import InformerForecastingDataset
@@ -12,14 +12,14 @@ from src.preprocessing import scale_informer_data
 
 
 def set_seed(seed=42):
-    """Fixe toutes les seeds pour garantir la reproductibilité."""
-    os.environ['PYTHONHASHSEED'] = str(seed) # Fixe les hashs de Python
-    np.random.seed(seed)                   # Fixe le hasard de Numpy
-    torch.manual_seed(seed)                # Fixe le hasard de PyTorch (CPU)
-    torch.cuda.manual_seed(seed)           # Fixe le hasard de PyTorch (GPU)
-    torch.cuda.manual_seed_all(seed)       # Fixe le hasard multi-GPU (au cas où)
+    """Fix seed for reproducibility."""
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)               
+    torch.manual_seed(seed)            
+    torch.cuda.manual_seed(seed)       
+    torch.cuda.manual_seed_all(seed)       
     
-    # Force cuDNN à utiliser des algorithmes déterministes
+    # drive determinism for CuDNN (may slow down training, but ensures reproducibility)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
@@ -33,14 +33,13 @@ def get_next_filename(base_name="graph", ext=".png"):
 def main():
     set_seed(0)
 
-    # --- HYPERPARAMÈTRES ---
+    # hyperparameters
     seq_len_past = 110      # Look-back window
     horizon = 10       # Prediction window
     hidden_dim = 32        # Must remain the same in finetune.py
     batch_size = 16
     epochs = 15
     learning_rate = 1e-4
-    # -----------------------
 
     data_path = 'data/informer/ETTh1.csv'
     
@@ -57,7 +56,7 @@ def main():
 
     scaled_data, scaler = scale_informer_data(raw_data)
 
-    # --- SPLIT CHRONOLOGIQUE (80% Train, 20% Val) ---
+    #  (80% Train, 20% Val) 
     train_size = int(len(scaled_data) * 0.9)
     train_data = scaled_data[:train_size]
     val_data = scaled_data[train_size:]
@@ -79,7 +78,7 @@ def main():
     criterion = nn.MSELoss() 
     optimizer = optim.Adam(forecasting_model.parameters(), lr=learning_rate)
 
-    # Variables pour le Checkpointing et le Graphique
+    # checkpointing variables
     best_val_loss = float('inf')
     best_encoder_path = "pretrained_encoder.pth"
     history_train_loss = []
@@ -106,7 +105,7 @@ def main():
             total_train_loss += loss.item()
             
         avg_train_loss = total_train_loss / len(train_loader)
-        history_train_loss.append(avg_train_loss) # Sauvegarde pour le graphe
+        history_train_loss.append(avg_train_loss) 
 
         # --- VALIDATION PHASE ---
         forecasting_model.eval()
@@ -121,7 +120,7 @@ def main():
                 total_val_loss += loss.item()
                 
         avg_val_loss = total_val_loss / len(val_loader)
-        history_val_loss.append(avg_val_loss) # Sauvegarde pour le graphe
+        history_val_loss.append(avg_val_loss) 
 
         print(f"    Epoch [{epoch+1}/{epochs}] | Train MSE: {avg_train_loss:.4f} | Val MSE: {avg_val_loss:.4f}")
 
@@ -130,7 +129,7 @@ def main():
             best_val_loss = avg_val_loss
             torch.save(encoder.state_dict(), best_encoder_path)
 
-    # --- NOUVEAU : GÉNÉRATION DU GRAPHIQUE ---
+    
     print("\nGenerating Pre-training Loss Curve...")
     os.makedirs("graphs", exist_ok=True) 
     
@@ -153,7 +152,7 @@ def main():
     plt.grid(True, linestyle=':', alpha=0.7)
     plt.tight_layout() 
     
-    # On sauvegarde avec un préfixe différent pour ne pas mélanger avec la classification
+
     save_filename = get_next_filename(base_name="graphs/pretrain_graph", ext=".png")
     
     plt.savefig(save_filename, dpi=300, bbox_inches='tight') 
