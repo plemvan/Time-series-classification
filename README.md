@@ -30,11 +30,12 @@ LSST-TimeSeries-DL/
 │
 ├── baseline.py                     
 ├── pretrain.py                
-├── finetune.py                     
+├── finetune.py    
+├── report.py                       
 │
 ├── main_LSST_classification.ipynb  
 │
 ├── pretrained_encoder.pth         
 ├── requirements.txt               
 ├── report_DL_TimeSeries.pdf        
-└── README.md                     
+└── README.md
