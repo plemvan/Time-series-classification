@@ -31,7 +31,7 @@ LSST-TimeSeries-DL/
 ├── baseline.py                     
 ├── pretrain.py                
 ├── finetune.py    
-├── report.py                       
+├── report.pdf                       
 │
 ├── main_LSST_classification.ipynb  
 │
