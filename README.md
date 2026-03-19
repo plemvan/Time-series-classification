@@ -32,7 +32,7 @@ LSST-TimeSeries-DL/
 ├── pretrain.py                
 ├── finetune.py                     
 │
-├── main_LSST_classification.ipynb  <-- Start here! 
+├── main_LSST_classification.ipynb  
 │
 ├── pretrained_encoder.pth         
 ├── requirements.txt               
